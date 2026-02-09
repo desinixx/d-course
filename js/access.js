@@ -3,7 +3,7 @@ import { onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/
 import { serverTimestamp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
 // Cloudinary Configuration
-const CLOUDINARY_CLOUD_NAME = "dd6ckybfy";
+const CLOUDINARY_CLOUD_NAME = "ffztf4nj";
 const CLOUDINARY_UPLOAD_PRESET = "qq4NjKt3QCLe_GQT5ft5ojUZ15E";
 
 const payBtn = document.getElementById('payBtn');

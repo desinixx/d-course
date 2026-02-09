@@ -93,11 +93,29 @@ if (loginForm) {
         setLoading(btn, true);
 
         try {
-            await signInWithEmailAndPassword(auth, email, password);
-            showAlert("Login successful! Redirecting...", "success");
-            setTimeout(() => {
-                window.location.href = 'dashboard.html';
-            }, 1000);
+            const userCredential = await signInWithEmailAndPassword(auth, email, password);
+            const user = userCredential.user;
+
+            // Check Status
+            const userDoc = await getDoc(doc(db, "users", user.uid));
+            if (userDoc.exists()) {
+                const userData = userDoc.data();
+                const status = userData.status;
+                
+                showAlert("Login successful! Redirecting...", "success");
+
+                setTimeout(() => {
+                    if (status === 'approved' || status === 'paid' || userData.role === 'admin') {
+                        window.location.href = 'dashboard.html';
+                    } else {
+                        // pending_access, scholarship_pending, etc.
+                        window.location.href = 'access.html';
+                    }
+                }, 1000);
+            } else {
+                // Fallback if doc doesn't exist (shouldn't happen)
+                window.location.href = 'access.html';
+            }
         } catch (error) {
             console.error(error);
             setLoading(btn, false);
@@ -132,13 +150,13 @@ if (signupForm) {
                 name: name,
                 email: email,
                 role: 'student',
-                status: 'pending_payment',
+                status: 'pending_access', // Updated status
                 createdAt: new Date().toISOString()
             });
 
             showAlert("Account created! Redirecting...", "success");
             setTimeout(() => {
-                window.location.href = 'dashboard.html';
+                window.location.href = 'access.html'; // Updated redirect
             }, 1500);
 
         } catch (error) {
@@ -168,7 +186,16 @@ onAuthStateChanged(auth, async (user) => {
     if (user) {
         const path = window.location.pathname;
         if (path.includes('index.html') || path === '/' || path.endsWith('/')) {
-             window.location.href = 'dashboard.html';
+             // Check status before auto-redirect
+             const userDoc = await getDoc(doc(db, "users", user.uid));
+             if (userDoc.exists()) {
+                 const status = userDoc.data().status;
+                 if (status === 'approved' || status === 'paid' || userDoc.data().role === 'admin') {
+                     window.location.href = 'dashboard.html';
+                 } else {
+                     window.location.href = 'access.html';
+                 }
+             }
         }
     }
 });

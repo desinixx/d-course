@@ -168,7 +168,7 @@ onAuthStateChanged(auth, async (user) => {
     if (user) {
         const path = window.location.pathname;
         if (path.includes('index.html') || path === '/' || path.endsWith('/')) {
-             window.location.href = 'access.html';
+             window.location.href = 'dashboard.html';
         }
     }
 });

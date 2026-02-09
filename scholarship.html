@@ -26,7 +26,7 @@
         <nav class="navbar navbar-custom mb-4 d-flex justify-content-between align-items-center">
             <div>
                 <h2 class="mb-0 text-white">Scholarship Application</h2>
-                <p class="text-white-75">Submit your documents for review.</p>
+                <p class="text-white-75">Upload your documents for scholarship review by the Desinix Team.</p>
             </div>
             <button class="btn btn-outline-light d-md-none" id="toggleSidebar">
                 <i class="fas fa-bars"></i>
@@ -36,45 +36,61 @@
         <div class="container-fluid">
             <div class="row justify-content-center">
                 <div class="col-md-8">
-                    <div class="glass-card p-4">
-                        <div id="alertMessage" class="d-none"></div>
+                    <!-- Already Applied Banner -->
+                    <div id="alreadyApplied" class="d-none">
+                        <div class="glass-card p-4 text-center">
+                            <i class="fas fa-clock fa-3x text-warning mb-3"></i>
+                            <h4 class="text-white">Application Submitted</h4>
+                            <p class="text-white-75" id="appliedStatusText">Your scholarship application is pending review by the Desinix Team.</p>
+                            <a href="dashboard.html" class="btn btn-primary mt-2">Back to Dashboard</a>
+                        </div>
+                    </div>
 
-                        <form id="scholarshipForm">
-                            <div class="mb-4">
-                                <label for="studentName" class="form-label text-white">Full Name</label>
-                                <input type="text" class="form-control" id="studentName" required readonly>
-                            </div>
-                            
-                            <div class="mb-4">
-                                <label for="email" class="form-label text-white">Email Address</label>
-                                <input type="email" class="form-control" id="email" required readonly>
-                            </div>
+                    <!-- Scholarship Form -->
+                    <div id="scholarshipFormContainer">
+                        <div class="glass-card p-4">
+                            <div id="alertMessage" class="d-none"></div>
 
-                            <div class="mb-4">
-                                <label for="adhaarFile" class="form-label text-white">Adhaar Card (Image, max 2MB)</label>
-                                <input type="file" class="form-control" id="adhaarFile" accept="image/*" required>
-                            </div>
-
-                            <div class="mb-4">
-                                <label for="birthCertFile" class="form-label text-white">Birth Certificate (Image, max 2MB)</label>
-                                <input type="file" class="form-control" id="birthCertFile" accept="image/*" required>
-                            </div>
-
-                            <div class="mb-4">
-                                <label for="rationCardFile" class="form-label text-white">Ration Card (Image, max 2MB)</label>
-                                <input type="file" class="form-control" id="rationCardFile" accept="image/*" required>
-                            </div>
-
-                            <!-- Progress Bar -->
-                            <div id="progressContainer" class="mb-4 d-none">
-                                <p class="text-white mb-1">Uploading Documents...</p>
-                                <div class="progress" style="height: 10px;">
-                                    <div class="progress-bar progress-bar-striped progress-bar-animated bg-success" role="progressbar" style="width: 0%" id="uploadProgress"></div>
+                            <form id="scholarshipForm">
+                                <div class="mb-4">
+                                    <label for="studentName" class="form-label text-white">Full Name</label>
+                                    <input type="text" class="form-control" id="studentName" required readonly>
                                 </div>
-                            </div>
 
-                            <button type="submit" class="btn btn-primary w-100" id="submitBtn">Submit Application</button>
-                        </form>
+                                <div class="mb-4">
+                                    <label for="email" class="form-label text-white">Email Address</label>
+                                    <input type="email" class="form-control" id="email" required readonly>
+                                </div>
+
+                                <div class="mb-4">
+                                    <label for="adhaarFile" class="form-label text-white">
+                                        <i class="fas fa-id-card me-2"></i>Adhaar Card (Image, max 2MB)
+                                    </label>
+                                    <input type="file" class="form-control" id="adhaarFile" accept="image/*" required>
+                                    <small class="text-white-75">Accepted: JPG, PNG, WEBP</small>
+                                </div>
+
+                                <div class="mb-4">
+                                    <label for="birthCertFile" class="form-label text-white">
+                                        <i class="fas fa-file-alt me-2"></i>Birth Certificate (Image, max 2MB)
+                                    </label>
+                                    <input type="file" class="form-control" id="birthCertFile" accept="image/*" required>
+                                    <small class="text-white-75">Accepted: JPG, PNG, WEBP</small>
+                                </div>
+
+                                <!-- Progress Bar -->
+                                <div id="progressContainer" class="mb-4 d-none">
+                                    <p class="text-white mb-1" id="progressText">Uploading Documents...</p>
+                                    <div class="progress" style="height: 10px;">
+                                        <div class="progress-bar progress-bar-striped progress-bar-animated bg-success" role="progressbar" style="width: 0%" id="uploadProgress"></div>
+                                    </div>
+                                </div>
+
+                                <button type="submit" class="btn btn-primary w-100" id="submitBtn">
+                                    <i class="fas fa-paper-plane me-2"></i>Submit Application
+                                </button>
+                            </form>
+                        </div>
                     </div>
                 </div>
             </div>

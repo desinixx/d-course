@@ -1,5 +1,10 @@
-import { auth, db, storage, ref, uploadBytes, getDownloadURL, doc, updateDoc, getDoc, addDoc, collection } from "./firebase-config.js";
+import { auth, db, doc, updateDoc, getDoc, addDoc, collection } from "./firebase-config.js";
 import { onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+import { serverTimestamp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+// Cloudinary Configuration
+const CLOUDINARY_CLOUD_NAME = "dd6ckybfy";
+const CLOUDINARY_UPLOAD_PRESET = "qq4NjKt3QCLe_GQT5ft5ojUZ15E";
 
 const payBtn = document.getElementById('payBtn');
 const scholarshipForm = document.getElementById('scholarshipForm');
@@ -33,17 +38,41 @@ if (logoutBtn) {
     });
 }
 
+/**
+ * Upload a file directly to Cloudinary using the Fetch API (unsigned upload).
+ */
+async function uploadToCloudinary(file, folder) {
+    const url = `https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD_NAME}/image/upload`;
+
+    const formData = new FormData();
+    formData.append('file', file);
+    formData.append('upload_preset', CLOUDINARY_UPLOAD_PRESET);
+    formData.append('folder', folder);
+
+    const response = await fetch(url, {
+        method: 'POST',
+        body: formData
+    });
+
+    if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error?.message || 'Cloudinary upload failed');
+    }
+
+    const data = await response.json();
+    return data.secure_url;
+}
+
 // Razorpay Logic (Mock)
 if (payBtn) {
     payBtn.addEventListener('click', () => {
         const options = {
-            "key": "YOUR_KEY_ID", // Enter the Key ID generated from the Dashboard
-            "amount": "49900", // Amount is in currency subunits. Default currency is INR. Hence, 50000 refers to 50000 paise
+            "key": "YOUR_KEY_ID",
+            "amount": "49900",
             "currency": "INR",
             "name": "Professional LMS",
             "description": "Course Access Fee",
             "handler": async function (response){
-                // On success, update user status
                 if (currentUser) {
                      await updateDoc(doc(db, "users", currentUser.uid), {
                         status: 'paid'
@@ -60,10 +89,6 @@ if (payBtn) {
                 "color": "#3399cc"
             }
         };
-        // Since we don't have a real key, we'll just mock the success for this demo
-        // const rzp1 = new Razorpay(options);
-        // rzp1.open();
-        
         // MOCK SUCCESS
         if(confirm("Simulating Payment Success?")) {
              options.handler({razorpay_payment_id: "mock_id"});
@@ -71,55 +96,57 @@ if (payBtn) {
     });
 }
 
-// Scholarship Upload Logic
+// Scholarship Upload Logic - Now using Cloudinary
 if (scholarshipForm) {
     scholarshipForm.addEventListener('submit', async (e) => {
         e.preventDefault();
-        
+
         if (!currentUser) return;
 
         const adhaarFile = document.getElementById('adhaarFile').files[0];
         const birthFile = document.getElementById('birthFile').files[0];
-        const rationFile = document.getElementById('rationFile').files[0];
 
         if (!adhaarFile || !birthFile) {
-            alert("Please upload required documents.");
+            alert("Please upload required documents (Adhaar and Birth Certificate).");
             return;
         }
 
-        uploadStatus.innerHTML = '<span class="text-warning">Uploading documents... Please wait.</span>';
+        // Validate file types and sizes
+        for (const file of [adhaarFile, birthFile]) {
+            if (file.size > 2 * 1024 * 1024) {
+                alert(`File "${file.name}" exceeds 2MB limit.`);
+                return;
+            }
+            if (!file.type.startsWith('image/')) {
+                alert(`File "${file.name}" is not a valid image.`);
+                return;
+            }
+        }
+
+        uploadStatus.innerHTML = '<span class="text-warning">Uploading documents to Cloudinary... Please wait.</span>';
         scholarshipForm.querySelector('button').disabled = true;
 
         try {
-            const timestamp = Date.now();
-            
-            // Upload Adhaar
-            const adhaarRef = ref(storage, `documents/${currentUser.uid}/adhaar_${timestamp}`);
-            await uploadBytes(adhaarRef, adhaarFile);
-            const adhaarURL = await getDownloadURL(adhaarRef);
+            // Upload Adhaar to Cloudinary
+            const adhaarUrl = await uploadToCloudinary(
+                adhaarFile,
+                `scholarship_docs/${currentUser.uid}`
+            );
 
-            // Upload Birth Cert
-            const birthRef = ref(storage, `documents/${currentUser.uid}/birth_${timestamp}`);
-            await uploadBytes(birthRef, birthFile);
-            const birthURL = await getDownloadURL(birthRef);
+            // Upload Birth Certificate to Cloudinary
+            const birthCertUrl = await uploadToCloudinary(
+                birthFile,
+                `scholarship_docs/${currentUser.uid}`
+            );
 
-            // Upload Ration (if exists)
-            let rationURL = null;
-            if (rationFile) {
-                const rationRef = ref(storage, `documents/${currentUser.uid}/ration_${timestamp}`);
-                await uploadBytes(rationRef, rationFile);
-                rationURL = await getDownloadURL(rationRef);
-            }
-
-            // Save Application to Firestore
-            await addDoc(collection(db, "applications"), {
+            // Save Application to Firestore (scholarship_requests collection)
+            await addDoc(collection(db, "scholarship_requests"), {
                 uid: currentUser.uid,
-                name: currentUser.displayName || "Unknown", // Assuming displayName is set or fetched
                 email: currentUser.email,
-                adhaarURL: adhaarURL,
-                birthCertURL: birthURL,
-                rationCardURL: rationURL,
-                timestamp: new Date()
+                adhaarUrl: adhaarUrl,
+                birthCertUrl: birthCertUrl,
+                status: "pending",
+                appliedAt: serverTimestamp()
             });
 
             // Update User Status
@@ -127,11 +154,11 @@ if (scholarshipForm) {
                 status: 'scholarship_pending'
             });
 
-            uploadStatus.innerHTML = '<span class="text-success">Request submitted successfully! Waiting for approval.</span>';
+            uploadStatus.innerHTML = '<span class="text-success">Request submitted successfully! Waiting for Desinix Team approval.</span>';
 
         } catch (error) {
             console.error(error);
-            uploadStatus.innerHTML = '<span class="text-danger">Error uploading documents. Try again.</span>';
+            uploadStatus.innerHTML = '<span class="text-danger">Error uploading documents: ' + error.message + '</span>';
             scholarshipForm.querySelector('button').disabled = false;
         }
     });

@@ -1,8 +1,12 @@
-import { auth, db, collection, getDocs, doc, updateDoc, getDoc, deleteDoc } from "./firebase-config.js";
+import { auth, db, collection, getDocs, doc, updateDoc, getDoc, query, where } from "./firebase-config.js";
 import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 
 const applicationsTable = document.getElementById('applicationsTable');
 const loading = document.getElementById('loading');
+const emptyState = document.getElementById('emptyState');
+const pendingCountEl = document.getElementById('pendingCount');
+const totalCountEl = document.getElementById('totalCount');
+const approvedCountEl = document.getElementById('approvedCount');
 
 onAuthStateChanged(auth, async (user) => {
     if (user) {
@@ -10,19 +14,11 @@ onAuthStateChanged(auth, async (user) => {
         const userDoc = await getDoc(doc(db, "users", user.uid));
         if (userDoc.exists() && userDoc.data().role === 'admin') {
             loadApplications();
+        } else if (user.email === 'admin@desinix.com') {
+            loadApplications();
         } else {
-            // For demo purposes, if the email is "admin@desinix.com", we treat as admin
-            // OR if it's the very first user... 
-            // Let's just alert and redirect if not admin.
-            // But to allow the USER to test this, I'll allow it if they add ?admin=true to URL or similar hack, 
-            // OR I will just instruct them to change the role in Firestore.
-            // For now:
-            if(user.email === 'admin@desinix.com') {
-                 loadApplications();
-            } else {
-                alert("Access Denied. Admins only.");
-                window.location.href = 'dashboard.html';
-            }
+            alert("Access Denied. Admins only.");
+            window.location.href = 'dashboard.html';
         }
     } else {
         window.location.href = 'index.html';
@@ -31,63 +27,108 @@ onAuthStateChanged(auth, async (user) => {
 
 async function loadApplications() {
     applicationsTable.innerHTML = '';
-    const querySnapshot = await getDocs(collection(db, "applications"));
-    
+
+    // Fetch all scholarship_requests to compute stats
+    const allSnapshot = await getDocs(collection(db, "scholarship_requests"));
+
+    let pendingCount = 0;
+    let approvedCount = 0;
+    let totalCount = allSnapshot.size;
+
+    allSnapshot.forEach((docSnap) => {
+        const data = docSnap.data();
+        if (data.status === 'pending') pendingCount++;
+        if (data.status === 'approved') approvedCount++;
+    });
+
+    // Update stats
+    pendingCountEl.textContent = pendingCount;
+    totalCountEl.textContent = totalCount;
+    approvedCountEl.textContent = approvedCount;
+
+    // Fetch only pending requests for the table
+    const pendingQuery = query(
+        collection(db, "scholarship_requests"),
+        where("status", "==", "pending")
+    );
+    const querySnapshot = await getDocs(pendingQuery);
+
+    loading.style.display = 'none';
+
     if (querySnapshot.empty) {
-        loading.textContent = "No pending applications.";
+        emptyState.classList.remove('d-none');
         return;
     }
 
-    loading.style.display = 'none';
+    emptyState.classList.add('d-none');
 
     querySnapshot.forEach((docSnapshot) => {
         const app = docSnapshot.data();
         const row = document.createElement('tr');
-        
-        const date = app.timestamp ? new Date(app.timestamp.seconds * 1000).toLocaleDateString() : 'N/A';
+
+        const date = app.appliedAt
+            ? new Date(app.appliedAt.seconds * 1000).toLocaleDateString('en-IN', {
+                year: 'numeric', month: 'short', day: 'numeric'
+            })
+            : 'N/A';
 
         row.innerHTML = `
             <td>${date}</td>
-            <td>${app.name}</td>
             <td>${app.email}</td>
             <td>
-                <a href="${app.adhaarURL}" target="_blank" class="btn btn-sm btn-outline-info">Adhaar</a>
-                <a href="${app.birthCertURL}" target="_blank" class="btn btn-sm btn-outline-info">Birth Cert</a>
-                ${app.rationCardURL ? `<a href="${app.rationCardURL}" target="_blank" class="btn btn-sm btn-outline-info">Ration</a>` : ''}
+                <a href="${app.adhaarUrl}" target="_blank" rel="noopener noreferrer">
+                    <img src="${app.adhaarUrl}" alt="Adhaar" class="doc-thumbnail" title="Click to view Adhaar Card">
+                </a>
             </td>
             <td>
-                <button class="btn btn-success btn-sm approve-btn" data-uid="${app.uid}" data-appid="${docSnapshot.id}">Approve</button>
+                <a href="${app.birthCertUrl}" target="_blank" rel="noopener noreferrer">
+                    <img src="${app.birthCertUrl}" alt="Birth Cert" class="doc-thumbnail" title="Click to view Birth Certificate">
+                </a>
+            </td>
+            <td><span class="badge-pending">Pending</span></td>
+            <td>
+                <button class="btn btn-success btn-sm approve-btn" data-uid="${app.uid}" data-appid="${docSnapshot.id}">
+                    <i class="fas fa-check me-1"></i>Approve
+                </button>
             </td>
         `;
         applicationsTable.appendChild(row);
     });
 
-    // Add event listeners
+    // Add event listeners for approve buttons
     document.querySelectorAll('.approve-btn').forEach(btn => {
         btn.addEventListener('click', approveUser);
     });
 }
 
 async function approveUser(e) {
-    const uid = e.target.getAttribute('data-uid');
-    const appId = e.target.getAttribute('data-appid');
+    const btn = e.target.closest('.approve-btn');
+    const uid = btn.getAttribute('data-uid');
+    const appId = btn.getAttribute('data-appid');
 
-    if (!confirm("Are you sure you want to approve this user?")) return;
+    if (!confirm("Are you sure you want to approve this scholarship request?")) return;
+
+    btn.disabled = true;
+    btn.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i>Approving...';
 
     try {
-        // Update user status
+        // Update the user's status to "approved" in the users collection
         await updateDoc(doc(db, "users", uid), {
             status: 'approved'
         });
 
-        // Delete application (or move to archive)
-        await deleteDoc(doc(db, "applications", appId));
+        // Update the scholarship_requests document status to "approved"
+        await updateDoc(doc(db, "scholarship_requests", appId), {
+            status: 'approved'
+        });
 
-        alert("User approved successfully!");
-        loadApplications(); // Refresh
+        alert("Scholarship approved! The student now has full course access.");
+        loadApplications(); // Refresh the table
 
     } catch (error) {
-        console.error(error);
-        alert("Error approving user.");
+        console.error("Error approving user:", error);
+        alert("Error approving user: " + error.message);
+        btn.disabled = false;
+        btn.innerHTML = '<i class="fas fa-check me-1"></i>Approve';
     }
 }

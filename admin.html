@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Admin Panel - Desinix Team</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <link rel="stylesheet" href="css/style.css">
     <style>
         .table-glass {
@@ -29,28 +30,89 @@
         .table-glass tbody tr:first-child td:last-child { border-top-right-radius: 10px; }
         .table-glass tbody tr:last-child td:first-child { border-bottom-left-radius: 10px; }
         .table-glass tbody tr:last-child td:last-child { border-bottom-right-radius: 10px; }
+        .doc-thumbnail {
+            width: 50px;
+            height: 50px;
+            object-fit: cover;
+            border-radius: 6px;
+            border: 1px solid rgba(255,255,255,0.2);
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+        .doc-thumbnail:hover {
+            transform: scale(1.1);
+        }
+        .badge-pending {
+            background: rgba(255, 193, 7, 0.2);
+            color: #FFC107;
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+        }
+        .stats-card {
+            background: rgba(255,255,255,0.05);
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 12px;
+            padding: 20px;
+            text-align: center;
+        }
+        .stats-card .stat-number {
+            font-size: 2rem;
+            font-weight: 700;
+            color: var(--primary-color);
+        }
     </style>
 </head>
 <body>
 
     <nav class="glass-navbar mb-4 p-3">
-        <div class="container d-flex justify-content-between">
-            <span class="navbar-brand">Desinix Team Admin</span>
-            <button class="btn btn-outline-light btn-sm" onclick="window.location.href='dashboard.html'">Back to Dashboard</button>
+        <div class="container d-flex justify-content-between align-items-center">
+            <div>
+                <span class="navbar-brand"><i class="fas fa-user-shield me-2"></i>Desinix Team Admin</span>
+            </div>
+            <div>
+                <button class="btn btn-outline-light btn-sm" onclick="window.location.href='dashboard.html'">
+                    <i class="fas fa-arrow-left me-1"></i> Back to Dashboard
+                </button>
+            </div>
         </div>
     </nav>
 
     <div class="container">
+        <!-- Stats Row -->
+        <div class="row mb-4" id="statsRow">
+            <div class="col-md-4 mb-3">
+                <div class="stats-card">
+                    <div class="stat-number" id="pendingCount">0</div>
+                    <div class="text-white-75">Pending Requests</div>
+                </div>
+            </div>
+            <div class="col-md-4 mb-3">
+                <div class="stats-card">
+                    <div class="stat-number" id="totalCount">0</div>
+                    <div class="text-white-75">Total Applications</div>
+                </div>
+            </div>
+            <div class="col-md-4 mb-3">
+                <div class="stats-card">
+                    <div class="stat-number text-success" id="approvedCount">0</div>
+                    <div class="text-white-75">Approved</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Pending Applications Table -->
         <div class="glass-card p-4">
-            <h3 class="mb-4 text-white">Pending Scholarship Requests</h3>
+            <h3 class="mb-4 text-white"><i class="fas fa-clock me-2"></i>Pending Scholarship Requests</h3>
             <div class="table-responsive">
                 <table class="table table-glass w-100">
                     <thead>
                         <tr>
                             <th>Date</th>
-                            <th>Name</th>
                             <th>Email</th>
-                            <th>Documents</th>
+                            <th>Adhaar Card</th>
+                            <th>Birth Certificate</th>
+                            <th>Status</th>
                             <th>Action</th>
                         </tr>
                     </thead>
@@ -59,7 +121,13 @@
                     </tbody>
                 </table>
             </div>
-            <div id="loading" class="text-center text-white-50">Loading...</div>
+            <div id="loading" class="text-center text-white-50 py-4">
+                <div class="spinner-border spinner-border-sm me-2" role="status"></div>Loading applications...
+            </div>
+            <div id="emptyState" class="text-center text-white-50 py-4 d-none">
+                <i class="fas fa-check-circle fa-2x mb-2 text-success"></i>
+                <p>No pending applications. All caught up!</p>
+            </div>
         </div>
     </div>
 

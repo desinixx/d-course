@@ -122,6 +122,11 @@ async function loadCoursesAndProgress(userId) {
 
     updateProgressCircle(totalCompleted, totalLessons);
     updateAchievementsUI(totalCompleted, coursesCompleted);
+
+    // Show certificate if at least one course is completed
+    if (coursesCompleted > 0) {
+        document.getElementById('certificateLink').style.display = 'block';
+    }
 }
 
 function updateProgressCircle(completed, total) {

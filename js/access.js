@@ -23,7 +23,7 @@ onAuthStateChanged(auth, async (user) => {
             if (userData.status === 'approved' || userData.status === 'paid') {
                 window.location.href = 'dashboard.html';
             } else if (userData.status === 'scholarship_pending') {
-                uploadStatus.innerHTML = '<span class="text-warning">Application pending approval.</span>';
+                uploadStatus.innerHTML = '<span class="text-warning">Your application is under review by Desinix Team. Access will be granted within 1 week upon verification.</span>';
                 scholarshipForm.querySelector('button').disabled = true;
             }
         }
@@ -154,7 +154,7 @@ if (scholarshipForm) {
                 status: 'scholarship_pending'
             });
 
-            uploadStatus.innerHTML = '<span class="text-success">Request submitted successfully! Waiting for Desinix Team approval.</span>';
+            uploadStatus.innerHTML = '<span class="text-success">Your application is under review by Desinix Team. Access will be granted within 1 week upon verification.</span>';
 
         } catch (error) {
             console.error(error);

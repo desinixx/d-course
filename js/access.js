@@ -3,8 +3,8 @@ import { onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/
 import { serverTimestamp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
 // Cloudinary Configuration
-const CLOUDINARY_CLOUD_NAME = "ffztf4nj";
-const CLOUDINARY_UPLOAD_PRESET = "747623266781195";
+const CLOUDINARY_CLOUD_NAME = "dd6ckybfy";
+const CLOUDINARY_UPLOAD_PRESET = "ffztf4nj";
 
 const payBtn = document.getElementById('payBtn');
 const scholarshipForm = document.getElementById('scholarshipForm');

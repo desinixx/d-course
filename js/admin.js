@@ -1,4 +1,4 @@
-import { auth, db, collection, getDocs, doc, updateDoc, getDoc, query, where } from "./firebase-config.js";
+import { auth, db, collection, getDocs, doc, updateDoc, deleteDoc, getDoc, query, where } from "./firebase-config.js";
 import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 
 const applicationsTable = document.getElementById('applicationsTable');
@@ -27,6 +27,7 @@ onAuthStateChanged(auth, async (user) => {
 
 async function loadApplications() {
     applicationsTable.innerHTML = '';
+    loading.style.display = 'block';
 
     // Fetch all scholarship_requests to compute stats
     const allSnapshot = await getDocs(collection(db, "scholarship_requests"));
@@ -42,9 +43,9 @@ async function loadApplications() {
     });
 
     // Update stats
-    pendingCountEl.textContent = pendingCount;
-    totalCountEl.textContent = totalCount;
-    approvedCountEl.textContent = approvedCount;
+    if (pendingCountEl) pendingCountEl.textContent = pendingCount;
+    if (totalCountEl) totalCountEl.textContent = totalCount;
+    if (approvedCountEl) approvedCountEl.textContent = approvedCount;
 
     // Fetch only pending requests for the table
     const pendingQuery = query(
@@ -56,14 +57,25 @@ async function loadApplications() {
     loading.style.display = 'none';
 
     if (querySnapshot.empty) {
-        emptyState.classList.remove('d-none');
+        if (emptyState) emptyState.classList.remove('d-none');
         return;
     }
 
-    emptyState.classList.add('d-none');
+    if (emptyState) emptyState.classList.add('d-none');
 
-    querySnapshot.forEach((docSnapshot) => {
+    const rowPromises = querySnapshot.docs.map(async (docSnapshot) => {
         const app = docSnapshot.data();
+        let studentName = 'Unknown';
+
+        try {
+            const userDocSnap = await getDoc(doc(db, "users", app.uid));
+            if (userDocSnap.exists()) {
+                studentName = userDocSnap.data().name || 'No Name';
+            }
+        } catch (e) {
+            console.error("Error fetching user name:", e);
+        }
+
         const row = document.createElement('tr');
 
         const date = app.appliedAt
@@ -74,6 +86,7 @@ async function loadApplications() {
 
         row.innerHTML = `
             <td>${date}</td>
+            <td>${studentName}</td>
             <td>${app.email}</td>
             <td>
                 <a href="${app.adhaarUrl}" target="_blank" rel="noopener noreferrer">
@@ -87,17 +100,28 @@ async function loadApplications() {
             </td>
             <td><span class="badge-pending">Pending</span></td>
             <td>
-                <button class="btn btn-success btn-sm approve-btn" data-uid="${app.uid}" data-appid="${docSnapshot.id}">
-                    <i class="fas fa-check me-1"></i>Approve
-                </button>
+                <div class="d-flex gap-2">
+                    <button class="btn btn-success btn-sm approve-btn" data-uid="${app.uid}" data-appid="${docSnapshot.id}">
+                        <i class="fas fa-check me-1"></i>Approve
+                    </button>
+                    <button class="btn btn-danger btn-sm reject-btn" data-uid="${app.uid}" data-appid="${docSnapshot.id}">
+                        <i class="fas fa-times me-1"></i>Reject
+                    </button>
+                </div>
             </td>
         `;
-        applicationsTable.appendChild(row);
+        return row;
     });
 
-    // Add event listeners for approve buttons
+    const rows = await Promise.all(rowPromises);
+    rows.forEach(row => applicationsTable.appendChild(row));
+
+    // Add event listeners for buttons
     document.querySelectorAll('.approve-btn').forEach(btn => {
         btn.addEventListener('click', approveUser);
+    });
+    document.querySelectorAll('.reject-btn').forEach(btn => {
+        btn.addEventListener('click', rejectUser);
     });
 }
 
@@ -112,15 +136,13 @@ async function approveUser(e) {
     btn.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i>Approving...';
 
     try {
-        // Update the user's status to "approved" in the users collection
+        // Update the user status in the users collection to approved
         await updateDoc(doc(db, "users", uid), {
             status: 'approved'
         });
 
-        // Update the scholarship_requests document status to "approved"
-        await updateDoc(doc(db, "scholarship_requests", appId), {
-            status: 'approved'
-        });
+        // Delete the entry from scholarship_requests
+        await deleteDoc(doc(db, "scholarship_requests", appId));
 
         alert("Scholarship approved! The student now has full course access.");
         loadApplications(); // Refresh the table
@@ -130,5 +152,35 @@ async function approveUser(e) {
         alert("Error approving user: " + error.message);
         btn.disabled = false;
         btn.innerHTML = '<i class="fas fa-check me-1"></i>Approve';
+    }
+}
+
+async function rejectUser(e) {
+    const btn = e.target.closest('.reject-btn');
+    const uid = btn.getAttribute('data-uid');
+    const appId = btn.getAttribute('data-appid');
+
+    if (!confirm("Are you sure you want to REJECT this scholarship request?")) return;
+
+    btn.disabled = true;
+    btn.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i>Rejecting...';
+
+    try {
+        // Optional: Update user status to 'rejected'
+        await updateDoc(doc(db, "users", uid), {
+            status: 'rejected'
+        });
+
+        // Delete the entry from scholarship_requests
+        await deleteDoc(doc(db, "scholarship_requests", appId));
+
+        alert("Scholarship rejected.");
+        loadApplications(); // Refresh the table
+
+    } catch (error) {
+        console.error("Error rejecting user:", error);
+        alert("Error rejecting user: " + error.message);
+        btn.disabled = false;
+        btn.innerHTML = '<i class="fas fa-times me-1"></i>Reject';
     }
 }

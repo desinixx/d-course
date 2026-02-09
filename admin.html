@@ -6,35 +6,61 @@
     <title>Admin Panel - Desinix Team</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="css/style.css">
+    <style>
+        .table-glass {
+            color: white;
+            border-collapse: separate;
+            border-spacing: 0 10px;
+        }
+        .table-glass thead th {
+            border: none;
+            background: rgba(255,255,255,0.1);
+            padding: 15px;
+        }
+        .table-glass tbody tr {
+            background: rgba(255,255,255,0.05);
+        }
+        .table-glass td {
+            border: none;
+            padding: 15px;
+            vertical-align: middle;
+        }
+        .table-glass tbody tr:first-child td:first-child { border-top-left-radius: 10px; }
+        .table-glass tbody tr:first-child td:last-child { border-top-right-radius: 10px; }
+        .table-glass tbody tr:last-child td:first-child { border-bottom-left-radius: 10px; }
+        .table-glass tbody tr:last-child td:last-child { border-bottom-right-radius: 10px; }
+    </style>
 </head>
 <body>
 
-    <nav class="navbar navbar-dark bg-dark mb-4">
-        <div class="container">
+    <nav class="glass-navbar mb-4 p-3">
+        <div class="container d-flex justify-content-between">
             <span class="navbar-brand">Desinix Team Admin</span>
             <button class="btn btn-outline-light btn-sm" onclick="window.location.href='dashboard.html'">Back to Dashboard</button>
         </div>
     </nav>
 
     <div class="container">
-        <h3 class="mb-4">Pending Scholarship Requests</h3>
-        <div class="table-responsive">
-            <table class="table table-striped table-hover">
-                <thead>
-                    <tr>
-                        <th>Date</th>
-                        <th>Name</th>
-                        <th>Email</th>
-                        <th>Documents</th>
-                        <th>Action</th>
-                    </tr>
-                </thead>
-                <tbody id="applicationsTable">
-                    <!-- Rows injected here -->
-                </tbody>
-            </table>
+        <div class="glass-card p-4">
+            <h3 class="mb-4 text-white">Pending Scholarship Requests</h3>
+            <div class="table-responsive">
+                <table class="table table-glass w-100">
+                    <thead>
+                        <tr>
+                            <th>Date</th>
+                            <th>Name</th>
+                            <th>Email</th>
+                            <th>Documents</th>
+                            <th>Action</th>
+                        </tr>
+                    </thead>
+                    <tbody id="applicationsTable">
+                        <!-- Rows injected here -->
+                    </tbody>
+                </table>
+            </div>
+            <div id="loading" class="text-center text-white-50">Loading...</div>
         </div>
-        <div id="loading" class="text-center">Loading...</div>
     </div>
 
     <script type="module" src="js/admin.js"></script>

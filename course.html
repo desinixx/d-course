@@ -8,9 +8,32 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <link rel="stylesheet" href="css/style.css">
     <style>
-        .disabled-link {
-            pointer-events: none;
-            opacity: 0.6;
+        .lesson-btn {
+            background: transparent;
+            border: none;
+            color: var(--text-muted);
+            width: 100%;
+            text-align: left;
+            padding: 15px;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+            transition: 0.3s;
+        }
+        .lesson-btn:hover {
+            background: rgba(255,255,255,0.05);
+            color: white;
+        }
+        .lesson-btn.active {
+            background: rgba(108, 99, 255, 0.2); /* Primary color low opacity */
+            color: white;
+            border-left: 4px solid var(--primary-color);
+        }
+        
+        .sidebar-course {
+            background: rgba(15, 12, 41, 0.9);
+            backdrop-filter: blur(20px);
+            border-right: 1px solid var(--glass-border);
+            height: 100vh;
+            overflow-y: auto;
         }
     </style>
 </head>
@@ -19,29 +42,41 @@
     <div class="container-fluid p-0">
         <div class="row g-0">
             <!-- Sidebar / Lesson List -->
-            <div class="col-md-3 bg-light border-end" style="height: 100vh; overflow-y: auto;">
-                <div class="p-3 border-bottom">
-                    <a href="dashboard.html" class="text-decoration-none text-dark"><i class="fas fa-arrow-left me-2"></i> Back to Dashboard</a>
-                    <h5 class="mt-3" id="courseTitle">Loading Course...</h5>
+            <div class="col-md-3 sidebar-course">
+                <div class="p-4 border-bottom border-secondary">
+                    <a href="dashboard.html" class="text-decoration-none text-white mb-3 d-block"><i class="fas fa-arrow-left me-2"></i> Back to Dashboard</a>
+                    <h5 class="text-white mb-0" id="courseTitle">Loading Course...</h5>
                 </div>
-                <div class="list-group list-group-flush" id="lessonList">
+                <div id="lessonList">
                     <!-- Lessons injected here -->
                 </div>
             </div>
 
             <!-- Video Area -->
-            <div class="col-md-9 d-flex flex-column" style="height: 100vh;">
-                <div class="p-4 flex-grow-1 bg-dark d-flex align-items-center justify-content-center">
-                    <div class="video-container" style="max-width: 900px;">
-                        <video id="videoPlayer" controls controlsList="nodownload">
+            <div class="col-md-9 d-flex flex-column" style="height: 100vh; background: #000;">
+                <div class="flex-grow-1 d-flex align-items-center justify-content-center p-4">
+                    <div class="custom-video-wrapper" style="max-width: 1000px;">
+                        <video id="videoPlayer" class="w-100" playsinline disablePictureInPicture oncontextmenu="return false;">
                             <source src="" type="video/mp4">
                             Your browser does not support the video tag.
                         </video>
+                        
+                        <!-- Custom Controls -->
+                        <div class="video-controls">
+                            <div>
+                                <button id="playPauseBtn" class="control-btn"><i class="fas fa-play"></i></button>
+                                <button id="muteBtn" class="control-btn"><i class="fas fa-volume-up"></i></button>
+                                <span class="text-white ms-2 small" id="timeDisplay">00:00 / 00:00</span>
+                            </div>
+                            <div>
+                                <button id="fullScreenBtn" class="control-btn"><i class="fas fa-expand"></i></button>
+                            </div>
+                        </div>
                     </div>
                 </div>
                 
-                <div class="p-4 bg-white border-top d-flex justify-content-between align-items-center">
-                    <h4 id="currentLessonTitle">Select a lesson</h4>
+                <div class="p-4 glass-navbar d-flex justify-content-between align-items-center border-top border-secondary">
+                    <h4 id="currentLessonTitle" class="text-white mb-0">Select a lesson</h4>
                     <div>
                          <button id="nextLessonBtn" class="btn btn-primary" disabled>Next Lesson <i class="fas fa-step-forward ms-1"></i></button>
                          <button id="takeTestBtn" class="btn btn-success d-none">Take Test <i class="fas fa-clipboard-check ms-1"></i></button>

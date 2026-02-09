@@ -18,7 +18,7 @@ onAuthStateChanged(auth, async (user) => {
             if (userData.status === 'approved' || userData.status === 'paid') {
                 window.location.href = 'dashboard.html';
             } else if (userData.status === 'scholarship_pending') {
-                uploadStatus.innerHTML = '<span class="text-info">Application pending approval.</span>';
+                uploadStatus.innerHTML = '<span class="text-warning">Application pending approval.</span>';
                 scholarshipForm.querySelector('button').disabled = true;
             }
         }
@@ -87,7 +87,7 @@ if (scholarshipForm) {
             return;
         }
 
-        uploadStatus.innerHTML = '<span class="text-primary">Uploading documents... Please wait.</span>';
+        uploadStatus.innerHTML = '<span class="text-warning">Uploading documents... Please wait.</span>';
         scholarshipForm.querySelector('button').disabled = true;
 
         try {

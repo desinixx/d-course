@@ -5,55 +5,77 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Final Assessment - Professional LMS</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <link rel="stylesheet" href="css/style.css">
 </head>
-<body class="bg-light">
+<body>
+
+    <!-- Loading Overlay -->
+    <div id="loadingOverlay" class="loading-overlay d-none">
+        <div class="spinner-circle"></div>
+        <h4 class="mt-3">Analyzing Results...</h4>
+        <p class="text-white-50">Generating your certificate of excellence.</p>
+    </div>
 
     <div class="container mt-5">
-        <div class="card shadow">
-            <div class="card-header bg-primary text-white">
-                <h3 class="mb-0">Final Assessment</h3>
+        <div class="glass-card shadow-lg p-0 overflow-hidden" style="max-width: 800px; margin: 0 auto;">
+            <div class="card-header bg-transparent border-bottom border-secondary p-4">
+                <h3 class="mb-0 text-white"><i class="fas fa-scroll me-2"></i> Final Assessment</h3>
             </div>
-            <div class="card-body" id="quizContainer">
-                <p>Answer the following questions to claim your certificate.</p>
+            
+            <div class="card-body p-4" id="quizContainer">
+                <p class="text-white-50 mb-4">Answer the following questions correctly to claim your certificate. You must score 100%.</p>
                 <form id="quizForm">
                     <div class="mb-4">
-                        <label class="fw-bold">1. What does HTML stand for?</label>
-                        <div class="form-check">
-                            <input class="form-check-input" type="radio" name="q1" value="wrong" required> Hyper Text Modern Language
+                        <label class="fw-bold text-white mb-2">1. What does HTML stand for?</label>
+                        <div class="form-check custom-radio mb-2">
+                            <input class="form-check-input" type="radio" name="q1" value="wrong" id="q1a" required>
+                            <label class="form-check-label text-white-50" for="q1a">Hyper Text Modern Language</label>
                         </div>
-                        <div class="form-check">
-                            <input class="form-check-input" type="radio" name="q1" value="correct"> Hyper Text Markup Language
+                        <div class="form-check custom-radio">
+                            <input class="form-check-input" type="radio" name="q1" value="correct" id="q1b">
+                            <label class="form-check-label text-white-50" for="q1b">Hyper Text Markup Language</label>
                         </div>
                     </div>
 
                     <div class="mb-4">
-                        <label class="fw-bold">2. Which tag is used for the largest heading?</label>
-                        <div class="form-check">
-                            <input class="form-check-input" type="radio" name="q2" value="correct" required> &lt;h1&gt;
+                        <label class="fw-bold text-white mb-2">2. Which tag is used for the largest heading?</label>
+                        <div class="form-check custom-radio mb-2">
+                            <input class="form-check-input" type="radio" name="q2" value="correct" id="q2a" required>
+                            <label class="form-check-label text-white-50" for="q2a"> &lt;h1&gt;</label>
                         </div>
-                        <div class="form-check">
-                            <input class="form-check-input" type="radio" name="q2" value="wrong"> &lt;h6&gt;
+                        <div class="form-check custom-radio">
+                            <input class="form-check-input" type="radio" name="q2" value="wrong" id="q2b">
+                            <label class="form-check-label text-white-50" for="q2b"> &lt;h6&gt;</label>
                         </div>
                     </div>
                     
-                    <button type="submit" class="btn btn-success">Submit Answers</button>
+                    <div class="d-grid">
+                        <button type="submit" class="btn btn-primary btn-lg">Submit Answers</button>
+                    </div>
                 </form>
             </div>
             
-            <div class="card-body d-none text-center" id="resultContainer">
-                <h2 class="text-success mb-3">Congratulations!</h2>
-                <p class="lead">You have passed the assessment.</p>
-                <div id="certificatePreview" class="mb-3">
+            <div class="card-body d-none text-center p-5" id="resultContainer">
+                <div class="mb-4">
+                    <i class="fas fa-check-circle text-success" style="font-size: 4rem;"></i>
+                </div>
+                <h2 class="text-white mb-3">Congratulations!</h2>
+                <p class="text-white-50 mb-4">You have successfully passed the assessment. A copy of this certificate has been sent to your email.</p>
+                
+                <div id="certificatePreview" class="mb-4" style="overflow-x: auto;">
                     <canvas id="certificateCanvas" width="800" height="600"></canvas>
                 </div>
-                <button id="downloadBtn" class="btn btn-primary">Download Certificate</button>
-                <a href="dashboard.html" class="btn btn-outline-secondary">Back to Dashboard</a>
+                
+                <div class="d-flex justify-content-center gap-3">
+                    <button id="downloadBtn" class="btn btn-primary"><i class="fas fa-download me-2"></i> Download Certificate</button>
+                    <a href="dashboard.html" class="btn btn-outline-light">Back to Dashboard</a>
+                </div>
             </div>
         </div>
     </div>
 
-    <!-- EmailJS SDK -->
+    <!-- EmailJS SDK (Optional/Mock) -->
     <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
     <script type="module" src="js/quiz.js"></script>
 </body>

@@ -8,19 +8,68 @@ const currentLessonTitle = document.getElementById('currentLessonTitle');
 const nextLessonBtn = document.getElementById('nextLessonBtn');
 const takeTestBtn = document.getElementById('takeTestBtn');
 
+// Custom Controls
+const playPauseBtn = document.getElementById('playPauseBtn');
+const muteBtn = document.getElementById('muteBtn');
+const fullScreenBtn = document.getElementById('fullScreenBtn');
+const timeDisplay = document.getElementById('timeDisplay');
+
 let currentCourseId = new URLSearchParams(window.location.search).get('id');
 let currentCourse = null;
 let currentLessonIndex = 0;
 let userProgress = { completedLessons: [] };
 let currentUser = null;
 
-// Prevent right click on video
-videoPlayer.addEventListener('contextmenu', (e) => e.preventDefault());
+// Prevent keyboard seeking
+window.addEventListener('keydown', (e) => {
+    if (e.target === document.body || e.target === videoPlayer) {
+        if (e.key === 'ArrowRight' || e.key === 'ArrowLeft') {
+            e.preventDefault();
+        }
+    }
+});
+
+// Custom Control Logic
+playPauseBtn.addEventListener('click', togglePlay);
+videoPlayer.addEventListener('click', togglePlay); // Click video to play/pause
+
+function togglePlay() {
+    if (videoPlayer.paused || videoPlayer.ended) {
+        videoPlayer.play();
+        playPauseBtn.innerHTML = '<i class="fas fa-pause"></i>';
+    } else {
+        videoPlayer.pause();
+        playPauseBtn.innerHTML = '<i class="fas fa-play"></i>';
+    }
+}
+
+muteBtn.addEventListener('click', () => {
+    videoPlayer.muted = !videoPlayer.muted;
+    muteBtn.innerHTML = videoPlayer.muted ? '<i class="fas fa-volume-mute"></i>' : '<i class="fas fa-volume-up"></i>';
+});
+
+fullScreenBtn.addEventListener('click', () => {
+    if (videoPlayer.requestFullscreen) {
+        videoPlayer.requestFullscreen();
+    } else if (videoPlayer.webkitRequestFullscreen) { /* Safari */
+        videoPlayer.webkitRequestFullscreen();
+    } else if (videoPlayer.msRequestFullscreen) { /* IE11 */
+        videoPlayer.msRequestFullscreen();
+    }
+});
+
+videoPlayer.addEventListener('timeupdate', () => {
+    const formatTime = (seconds) => {
+        const m = Math.floor(seconds / 60);
+        const s = Math.floor(seconds % 60);
+        return `${m}:${s < 10 ? '0' : ''}${s}`;
+    };
+    timeDisplay.textContent = `${formatTime(videoPlayer.currentTime)} / ${formatTime(videoPlayer.duration || 0)}`;
+});
 
 onAuthStateChanged(auth, async (user) => {
     if (user) {
         currentUser = user;
-        // Verify access (optional again, but good practice)
         await loadCourseData();
     } else {
         window.location.href = 'index.html';
@@ -34,7 +83,6 @@ async function loadCourseData() {
         return;
     }
 
-    // Get Course
     const courseDoc = await getDoc(doc(db, "courses", currentCourseId));
     if (!courseDoc.exists()) {
         alert("Course not found.");
@@ -44,7 +92,6 @@ async function loadCourseData() {
     currentCourse = courseDoc.data();
     courseTitle.textContent = currentCourse.title;
 
-    // Get Progress
     const progressDoc = await getDoc(doc(db, "users", currentUser.uid, "progress", currentCourseId));
     if (progressDoc.exists()) {
         userProgress = progressDoc.data();
@@ -60,13 +107,12 @@ function renderLessons() {
     lessonList.innerHTML = '';
     currentCourse.lessons.forEach((lesson, index) => {
         const item = document.createElement('button');
-        item.className = `list-group-item list-group-item-action ${index === currentLessonIndex ? 'active' : ''}`;
+        item.className = `lesson-btn ${index === currentLessonIndex ? 'active' : ''}`;
         
-        // Add checkmark if completed
         const isCompleted = userProgress.completedLessons.includes(index);
         item.innerHTML = `
             <div class="d-flex justify-content-between align-items-center">
-                <span>${index + 1}. ${lesson.title}</span>
+                <span><i class="fas fa-play-circle me-2"></i> ${index + 1}. ${lesson.title}</span>
                 ${isCompleted ? '<i class="fas fa-check-circle text-success"></i>' : ''}
             </div>
         `;
@@ -75,8 +121,7 @@ function renderLessons() {
         lessonList.appendChild(item);
     });
 
-    // Load first lesson if none selected
-    if (videoPlayer.getAttribute('src') === "") {
+    if (!videoPlayer.getAttribute('src')) {
         loadLesson(0);
     }
 }
@@ -86,34 +131,41 @@ function loadLesson(index) {
     const lesson = currentCourse.lessons[index];
     
     currentLessonTitle.textContent = lesson.title;
-    
-    // "Obfuscate" URL slightly by not having it in initial HTML and setting it here
     videoPlayer.src = lesson.videoURL;
     videoPlayer.load();
-    videoPlayer.play().catch(e => console.log("Auto-play prevented", e));
+    
+    // Reset controls
+    playPauseBtn.innerHTML = '<i class="fas fa-play"></i>';
+    
+    // Autoplay attempt
+    const playPromise = videoPlayer.play();
+    if (playPromise !== undefined) {
+        playPromise.then(_ => {
+            playPauseBtn.innerHTML = '<i class="fas fa-pause"></i>';
+        }).catch(error => {
+            console.log("Autoplay prevented");
+        });
+    }
 
-    renderLessons(); // Update active state
+    renderLessons();
 
     nextLessonBtn.disabled = true;
     nextLessonBtn.onclick = () => loadLesson(index + 1);
 
-    // If already completed, enable next
     if (userProgress.completedLessons.includes(index)) {
         nextLessonBtn.disabled = false;
     }
 }
 
-// Video Events
 videoPlayer.addEventListener('ended', async () => {
+    playPauseBtn.innerHTML = '<i class="fas fa-redo"></i>'; // Replay icon
     nextLessonBtn.disabled = false;
     
     if (!userProgress.completedLessons.includes(currentLessonIndex)) {
-        // Mark as completed in Firestore
         await setDoc(doc(db, "users", currentUser.uid, "progress", currentCourseId), {
             completedLessons: arrayUnion(currentLessonIndex)
         }, { merge: true });
         
-        // Update local state
         userProgress.completedLessons.push(currentLessonIndex);
         renderLessons();
         checkTestEligibility();
@@ -121,8 +173,13 @@ videoPlayer.addEventListener('ended', async () => {
 });
 
 function checkTestEligibility() {
-    // Check if at least 3 lessons are completed
-    if (userProgress.completedLessons.length >= 3) {
+    // Logic: Enable test if ALL lessons are done (or just > 3 as per old logic, but let's make it STRICTER per "High-end" requirement)
+    // Actually, prompt says "Students must watch the full video to complete the lesson."
+    // Let's stick to the >= 3 logic from before or check if progress == total.
+    // Given the seed data has 3-4 lessons, checking for >= length is safer.
+    
+    const totalLessons = currentCourse.lessons.length;
+    if (userProgress.completedLessons.length >= totalLessons) {
         takeTestBtn.classList.remove('d-none');
         takeTestBtn.onclick = () => {
             window.location.href = `quiz.html?courseId=${currentCourseId}`;

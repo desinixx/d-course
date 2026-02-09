@@ -1,0 +1,108 @@
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background-color: #f8f9fa;
+}
+
+/* Sidebar */
+.sidebar {
+    height: 100vh;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 250px;
+    background-color: #2c3e50;
+    color: white;
+    padding-top: 20px;
+    transition: all 0.3s;
+    z-index: 1000;
+}
+
+.sidebar a {
+    padding: 15px 25px;
+    text-decoration: none;
+    font-size: 1.1rem;
+    color: #b8c7ce;
+    display: block;
+    transition: 0.3s;
+}
+
+.sidebar a:hover, .sidebar a.active {
+    color: white;
+    background-color: #1a252f;
+}
+
+.main-content {
+    margin-left: 250px;
+    padding: 20px;
+    transition: all 0.3s;
+}
+
+@media (max-width: 768px) {
+    .sidebar {
+        margin-left: -250px;
+    }
+    .main-content {
+        margin-left: 0;
+    }
+    .sidebar.active {
+        margin-left: 0;
+    }
+}
+
+/* Video Player Area */
+.video-container {
+    position: relative;
+    width: 100%;
+    background: #000;
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+}
+
+video {
+    width: 100%;
+    display: block;
+}
+
+.lesson-list {
+    max-height: 500px;
+    overflow-y: auto;
+}
+
+.lesson-item {
+    cursor: pointer;
+    padding: 10px;
+    border-bottom: 1px solid #eee;
+}
+
+.lesson-item:hover {
+    background-color: #f1f1f1;
+}
+
+.lesson-item.active {
+    background-color: #e9ecef;
+    font-weight: bold;
+    border-left: 4px solid #007bff;
+}
+
+/* Certificate Canvas */
+#certificateCanvas {
+    max-width: 100%;
+    border: 1px solid #ccc;
+    box-shadow: 0 0 10px rgba(0,0,0,0.1);
+}
+
+/* Auth Pages */
+.auth-container {
+    max-width: 400px;
+    margin: 50px auto;
+    padding: 30px;
+    background: white;
+    border-radius: 10px;
+    box-shadow: 0 0 20px rgba(0,0,0,0.05);
+}
+
+.no-select {
+    user-select: none;
+    -webkit-user-select: none;
+}

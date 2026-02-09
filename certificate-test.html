@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Certificate Generator Test</title>
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Great+Vibes&family=Playfair+Display:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
+    
+    <style>
+        body {
+            font-family: 'Playfair Display', serif;
+            text-align: center;
+            padding: 20px;
+            background-color: #f4f4f4;
+        }
+        #certificate-preview {
+            max-width: 100%;
+            height: auto;
+            border: 1px solid #ccc;
+            margin-top: 20px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        }
+        .controls {
+            margin-bottom: 20px;
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            display: inline-block;
+        }
+        input {
+            padding: 10px;
+            margin: 5px;
+            font-size: 16px;
+        }
+        button {
+            padding: 10px 20px;
+            font-size: 16px;
+            background-color: #004d40;
+            color: white;
+            border: none;
+            cursor: pointer;
+            border-radius: 4px;
+        }
+        button:hover {
+            background-color: #00695c;
+        }
+    </style>
+</head>
+<body>
+
+    <h1>Certificate Generator</h1>
+
+    <div class="controls">
+        <input type="text" id="studentName" placeholder="Student Name" value="John Doe">
+        <input type="text" id="courseName" placeholder="Course Name" value="Advanced JavaScript">
+        <input type="date" id="date" value="2023-10-27">
+        <button onclick="generate()">Generate Certificate</button>
+        <button onclick="download()">Download PDF/Image</button>
+    </div>
+
+    <br>
+    <img id="certificate-preview" alt="Certificate Preview will appear here" />
+
+    <script src="js/certificate.js"></script>
+    <script>
+        // Set default date to today
+        document.getElementById('date').valueAsDate = new Date();
+
+        async function generate() {
+            const student = document.getElementById('studentName').value;
+            const course = document.getElementById('courseName').value;
+            const dateStr = document.getElementById('date').value;
+            
+            // Format date nicely
+            const dateObj = new Date(dateStr);
+            const options = { year: 'numeric', month: 'long', day: 'numeric' };
+            const formattedDate = dateObj.toLocaleDateString('en-US', options);
+
+            try {
+                const dataUrl = await generateCertificate(student, course, formattedDate);
+                const img = document.getElementById('certificate-preview');
+                img.src = dataUrl;
+            } catch (error) {
+                console.error("Failed to generate certificate", error);
+                alert("Error generating certificate. Check console for details.");
+            }
+        }
+
+        function download() {
+            const img = document.getElementById('certificate-preview');
+            if (!img.src || img.src === window.location.href) {
+                alert("Please generate the certificate first.");
+                return;
+            }
+            
+            // Simple download as image for now
+            const link = document.createElement('a');
+            link.download = 'certificate.png';
+            link.href = img.src;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
+
+        // Generate on load
+        window.onload = () => {
+             // Wait a moment for fonts to load properly
+             document.fonts.ready.then(() => {
+                 generate();
+             });
+        };
+    </script>
+</body>
+</html>

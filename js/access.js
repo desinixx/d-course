@@ -4,7 +4,7 @@ import { serverTimestamp } from "https://www.gstatic.com/firebasejs/10.7.1/fireb
 
 // Cloudinary Configuration
 const CLOUDINARY_CLOUD_NAME = "ffztf4nj";
-const CLOUDINARY_UPLOAD_PRESET = "qq4NjKt3QCLe_GQT5ft5ojUZ15E";
+const CLOUDINARY_UPLOAD_PRESET = "747623266781195";
 
 const payBtn = document.getElementById('payBtn');
 const scholarshipForm = document.getElementById('scholarshipForm');

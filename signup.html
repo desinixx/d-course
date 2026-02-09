@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Login - Professional LMS</title>
+    <title>Sign Up - Professional LMS</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="css/style.css">
 </head>
@@ -11,17 +11,20 @@
 
     <div class="container">
         <div class="auth-container text-center">
-            <h3 class="mb-4">Student Login</h3>
-            <form id="loginForm">
+            <h3 class="mb-4">Create Account</h3>
+            <form id="signupForm">
+                <div class="mb-3">
+                    <input type="text" class="form-control" id="name" placeholder="Full Name" required>
+                </div>
                 <div class="mb-3">
                     <input type="email" class="form-control" id="email" placeholder="Email Address" required>
                 </div>
                 <div class="mb-3">
                     <input type="password" class="form-control" id="password" placeholder="Password" required>
                 </div>
-                <button type="submit" class="btn btn-primary w-100">Login</button>
+                <button type="submit" class="btn btn-success w-100">Sign Up</button>
             </form>
-            <p class="mt-3">Don't have an account? <a href="signup.html">Sign Up</a></p>
+            <p class="mt-3">Already have an account? <a href="index.html">Login</a></p>
             <div id="alertMessage" class="alert d-none mt-3"></div>
         </div>
     </div>

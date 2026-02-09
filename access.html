@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Get Access - Professional LMS</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body class="bg-light">
+
+    <div class="container mt-5">
+        <h2 class="text-center mb-4">Unlock Your Learning Journey</h2>
+        
+        <div class="row justify-content-center">
+            <!-- Payment Option -->
+            <div class="col-md-5 mb-4">
+                <div class="card h-100 shadow-sm">
+                    <div class="card-body text-center">
+                        <h4 class="card-title">Instant Access</h4>
+                        <p class="card-text">Pay the course fee and start learning immediately.</p>
+                        <h3 class="text-primary my-3">₹499</h3>
+                        <button id="payBtn" class="btn btn-primary btn-lg w-100">Pay with Razorpay</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Scholarship Option -->
+            <div class="col-md-5 mb-4">
+                <div class="card h-100 shadow-sm">
+                    <div class="card-body">
+                        <h4 class="card-title text-center">Scholarship Request</h4>
+                        <p class="card-text text-center text-muted">Submit documents for financial aid.</p>
+                        
+                        <form id="scholarshipForm">
+                            <div class="mb-3">
+                                <label class="form-label">Adhaar Card (Required)</label>
+                                <input type="file" class="form-control" id="adhaarFile" required>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">Birth Certificate (Required)</label>
+                                <input type="file" class="form-control" id="birthFile" required>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">Ration Card (Optional)</label>
+                                <input type="file" class="form-control" id="rationFile">
+                            </div>
+                            <button type="submit" class="btn btn-outline-primary w-100">Submit Request</button>
+                        </form>
+                        <div id="uploadStatus" class="mt-2 text-center"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="text-center mt-3">
+             <button id="logoutBtn" class="btn btn-link text-danger">Logout</button>
+        </div>
+    </div>
+
+    <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+    <script type="module" src="js/access.js"></script>
+</body>
+</html>
